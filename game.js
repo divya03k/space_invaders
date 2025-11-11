@@ -440,7 +440,7 @@ function endGame() {
 // ======================
 async function saveScore(name, score) {
     try {
-        const res = await fetch("http://localhost:3000/add-score", {
+        const res = await fetch("https://space-invaders-cddi.onrender.com/add-score", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -462,7 +462,7 @@ async function saveScore(name, score) {
 // ======================
 async function displayLeaderboard() {
     try {
-        const res = await fetch("http://localhost:3000/leaderboard");
+        const res = await fetch("https://space-invaders-cddi.onrender.com/leaderboard");
         const scores = await res.json();
 
         elements.leaderboardList.innerHTML = scores.length
