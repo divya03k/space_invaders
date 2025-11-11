@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Space Invaders</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+</head>
+<body>
+    <!-- Name Input Screen -->
+    <div id="nameScreen" class="screen active">
+        <div class="screen-content">
+            <h1>🚀 Space Invaders</h1>
+            <p>Enter your name to start</p>
+            <input type="text" id="nameInput" placeholder="Your Name" maxlength="20" autofocus>
+            <button id="startBtn" class="btn-primary">Start Game</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <canvas id="gameCanvas"></canvas>
+        <div class="hud">
+            <div class="hud-item">
+                <span id="playerNameDisplay"></span>
+                <span>| Score: <span id="scoreDisplay">0</span></span>
+                <span>| Level: <span id="levelDisplay">1</span></span>
+            </div>
+        </div>
+        
+        <!-- Mobile Controls -->
+        <div class="mobile-controls">
+            <div class="control-buttons">
+                <button id="leftBtn" class="control-btn">←</button>
+                <button id="rightBtn" class="control-btn">→</button>
+                <button id="upBtn" class="control-btn">↑</button>
+                <button id="downBtn" class="control-btn">↓</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quizScreen" class="screen">
+        <div class="screen-content quiz-content">
+            <h2 id="quizTitle">Level <span id="quizLevel">1</span> Quiz</h2>
+            <p id="quizQuestion" class="question-text"></p>
+            <div id="quizOptions" class="quiz-options"></div>
+            <div id="quizFeedback" class="quiz-feedback"></div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" class="screen">
+  <div class="screen-content">
+    <h1>💀 Game Over</h1>
+    <p id="finalScore"></p>
+
+    <div class="button-group">
+      <button id="viewStatsBtn" class="btn-primary">My Score</button>
+      <button id="leaderboardBtn" class="btn-secondary">View Leaderboard</button>
+    </div>
+
+    <div id="statsPopup" class="popup hidden">
+      <h3>My Score</h3>
+      <p id="statsText"></p>
+      <button id="closeStatsBtn" class="btn-secondary small">Close</button>
+    </div>
+  </div>
+</div>
+<!--LEADERBORD-->
+    
+<div id="leaderboardScreen" class="screen">
+  <div class="screen-content">
+    <h1>🏆 Leaderboard</h1>
+    <div id="leaderboardList"></div>
+    <button id="exitGameBtn" class="btn-primary">Exit Game</button>
+  </div>
+</div>
+<!-- Exit Screen -->
+<div id="exitScreen" class="screen hidden">
+  <div class="screen-content">
+    <h1>👋 Thanks for playing!</h1>
+    <p>See you next time, Pilot!</p>
+  </div>
+</div>
+
+
+
+    <!-- Audio -->
+    <audio id="backgroundMusic" loop>
+        <source src="assets/background.ogg" type="audio/ogg">
+        <source src="assets/background.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="explosionSound">
+        <source src="assets/explosion.wav" type="audio/wav">
+    </audio>
+
+    <script src="game.js"></script>
+</body>
+</html>
+
