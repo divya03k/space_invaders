@@ -253,22 +253,29 @@ function showQuiz() {
                 highlightCorrect();
 
                 // After a short pause, remove wrong highlight and re-show same question
-                setTimeout(() => {
-                    // remove wrong classes but keep correct highlighted briefly
-                    Array.from(elements.quizOptions.children).forEach(b => {
-                        b.classList.remove('wrong');
-                        // keep .correct class for the user to see the answer for a moment
-                    });
+                // Show correct answer briefly, then return to game and re-ask later
+setTimeout(() => {
+  Array.from(elements.quizOptions.children).forEach(b => b.classList.remove('wrong'));
+  elements.quizFeedback.textContent = 'Review the correct answer...';
+  
+  setTimeout(() => {
+    // remove highlight and return to game
+    Array.from(elements.quizOptions.children).forEach(b => b.classList.remove('correct'));
+    elements.quizFeedback.textContent = '';
+    gameState.quizMode = false;
+    gameState.quizTimer = Date.now();
 
-                    // Wait another short moment then clear the "correct" highlight and let player try again
-                    setTimeout(() => {
-                        Array.from(elements.quizOptions.children).forEach(b => b.classList.remove('correct'));
-                        elements.quizFeedback.textContent = '';
-                        // re-display same question (quizMode remains true)
-                        showQuiz(); // rebuild the same question so player can attempt again
-                    }, 1000);
-                }, 1200);
-            }
+    // Resume game
+    showScreen('gameScreen');
+
+    // After 5 seconds, re-ask the same question
+    setTimeout(() => {
+      if (!q.answered && !gameState.gameOver) showQuiz();
+    }, 5000);
+  }, 1500);
+}, 1200);
+
+                }
         };
 
         elements.quizOptions.appendChild(btn);
@@ -424,6 +431,33 @@ elements.exitGameBtn.onclick = () => {
 closeStatsBtn.onclick = () => {
   statsPopup.classList.add('hidden');
 };
+// Restart game after Game Over
+document.getElementById("restartBtn").onclick = () => {
+  // Reset only dynamic elements (not name or score)
+  gameState.gameOver = false;
+  gameState.quizMode = false;
+  gameState.bullets = [];
+  gameState.enemies = [];
+  gameState.enemySpawnTimer = 0;
+  gameState.bulletTimer = 0;
+  gameState.quizTimer = Date.now(); // restart timer so quiz doesn't trigger instantly
+
+  // Resume background sound
+  try {
+    sounds.background.currentTime = 0;
+    sounds.background.play();
+  } catch (err) {
+    console.warn("Audio resume error:", err);
+  }
+
+  // Return to game screen and resume gameplay
+  showScreen("gameScreen");
+};
+
+// Back from leaderboard to Game Over screen
+document.getElementById("backToGameOverBtn").onclick = () => {
+  showScreen("gameOverScreen");
+};
 
 
 function endGame() {
@@ -440,7 +474,7 @@ function endGame() {
 // ======================
 async function saveScore(name, score) {
     try {
-        const res = await fetch("http://localhost:3000/add-score", {
+        const res = await fetch("https://space-invaders-cddi.onrender.com/add-score", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -462,7 +496,7 @@ async function saveScore(name, score) {
 // ======================
 async function displayLeaderboard() {
     try {
-        const res = await fetch("http://localhost:3000/leaderboard");
+        const res = await fetch("https://space-invaders-cddi.onrender.com/leaderboard");
         const scores = await res.json();
 
         elements.leaderboardList.innerHTML = scores.length

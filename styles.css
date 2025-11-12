@@ -447,3 +447,35 @@ h2 {
   opacity: 1;
   transform: scale(1);
 }
+/* Make game fullscreen on mobile */
+#gameCanvas {
+  width: 100vw;
+  height: 70vh;
+  display: block;
+  margin: 0 auto;
+}
+
+/* Smaller arrow buttons */
+.controls button {
+  width: 50px;
+  height: 50px;
+  font-size: 18px;
+  border-radius: 50%;
+  margin: 4px;
+}
+
+/* Make sure mobile layout fits nicely */
+@media (max-width: 768px) {
+  .controls {
+    position: fixed;
+    bottom: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  #gameCanvas {
+    height: 75vh;
+  }
+}
