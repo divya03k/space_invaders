@@ -4,7 +4,6 @@ import fs from "fs";
 import dotenv from "dotenv";
 
 dotenv.config();
-
 const pool = mysql.createPool({
   host: process.env.TIDB_HOST,
   port: Number(process.env.TIDB_PORT || 4000),
@@ -17,5 +16,6 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
 });
+
 
 export default pool;

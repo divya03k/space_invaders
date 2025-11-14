@@ -123,21 +123,32 @@ async function loadAssets() {
 // ======================
 async function loadQuestions() {
     try {
-        const r = await fetch('questions.txt?t=' + Date.now());
+        const token = localStorage.getItem('token'); // JWT from login
+        const r = await fetch('http://localhost:3000/questions', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (!r.ok) throw 0;
-        const lines = (await r.text()).split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
-        const all = [];
-        for (const l of lines) {
-            const p = l.split('|').map(x => x.trim());
-            if (p.length >= 6) all.push({question: p[0], options: p.slice(1,5), correctAnswer: p[5], answered: false});
-        }
+
+        const allFromDB = await r.json(); // Array of questions from DB
+
+        // Map DB format to your gameState structure
+        const all = allFromDB.map(q => ({
+            question: q.question,
+            options: q.options, // already shuffled by backend
+            correctAnswer: q.correct,
+            answered: false
+        }));
+
         if (all.length) {
-            const per = Math.ceil(all.length / 5);
+            const per = Math.ceil(all.length / 5); // Divide into 5 levels
             for (let i = 1; i <= 5; i++) {
-                gameState.questions[i] = all.slice((i-1)*per, i*per);
+                gameState.questions[i] = all.slice((i - 1) * per, i * per);
             }
         }
     } catch (e) {
+        console.error("Failed to load questions from DB:", e);
+
+        // Fallback if DB fails
         gameState.questions = {
             1: [{question:"2+2=?",options:["3","4","5","6"],correctAnswer:"4",answered:false}],
             2: [{question:"Capital of France?",options:["London","Paris","Berlin","Rome"],correctAnswer:"Paris",answered:false}],
@@ -474,7 +485,7 @@ function endGame() {
 // ======================
 async function saveScore(name, score) {
     try {
-        const res = await fetch("https://space-invaders-cddi.onrender.com/add-score", {
+        const res = await fetch("http://localhost:3000/api/auth/add-score", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -535,6 +546,12 @@ async function init() {
 }
 
 init();
+// Auto-fill name if available (from login)
+const savedName = localStorage.getItem("playerName");
+if (savedName && elements.nameInput) {
+  elements.nameInput.value = savedName;
+}
+
 
 // ======================
 // PLAYER STATS POPUP HANDLERS

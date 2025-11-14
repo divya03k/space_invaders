@@ -1,105 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>Space Invaders</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+  <meta charset="UTF-8" />
+  <title>Quiz Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at top, #00111f, #000);
+      font-family: "Poppins", sans-serif;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .login-container {
+      text-align: center;
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 50px;
+      border-radius: 20px;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.4);
+      width: 360px;
+    }
+    h1 {
+      font-size: 3rem;
+      color: cyan;
+      text-shadow: 0 0 15px cyan;
+      margin-bottom: 2rem;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      margin: 15px 0;
+      transition: all 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #00bcd4;
+      transform: scale(1.05);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+    .modal-content {
+      background: #0c1a26;
+      padding: 30px;
+      border-radius: 15px;
+      width: 340px;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-content h2 {
+      text-align: center;
+      color: cyan;
+      margin-bottom: 15px;
+    }
+    .modal-content input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 6px;
+      outline: none;
+      font-size: 1rem;
+    }
+    .login-btn {
+      width: 100%;
+      background: #00bcd4;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .login-btn:hover {
+      background: #0097a7;
+    }
+    .close {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+      color: #aaa;
+    }
+    .close:hover {
+      color: white;
+    }
+    .neon-border {
+      box-shadow: 0 0 10px cyan, inset 0 0 10px cyan;
+    }
+    .error {
+      color: #ff6666;
+      text-align: center;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+  </style>
 </head>
 <body>
-    <!-- Name Input Screen -->
-    <div id="nameScreen" class="screen active">
-        <div class="screen-content">
-            <h1>🚀 Space Invaders</h1>
-            <p>Enter your name to start</p>
-            <input type="text" id="nameInput" placeholder="Your Name" maxlength="20" autofocus>
-            <button id="startBtn" class="btn-primary">Start Game</button>
-        </div>
-    </div>
+  <div class="login-container">
+    <h1>Quiz</h1>
+    <button class="btn" id="playerLoginBtn">Login as Player</button>
+    <button class="btn" id="adminLoginBtn">Login as Admin</button>
+  </div>
 
-    <!-- Game Screen -->
-    <div id="gameScreen" class="screen">
-        <canvas id="gameCanvas"></canvas>
-        <div class="hud">
-            <div class="hud-item">
-                <span id="playerNameDisplay"></span>
-                <span>| Score: <span id="scoreDisplay">0</span></span>
-                <span>| Level: <span id="levelDisplay">1</span></span>
-            </div>
-        </div>
-        
-        <!-- Mobile Controls -->
-        <div class="mobile-controls">
-            <div class="control-buttons">
-                <button id="leftBtn" class="control-btn">←</button>
-                <button id="rightBtn" class="control-btn">→</button>
-                <button id="upBtn" class="control-btn">↑</button>
-                <button id="downBtn" class="control-btn">↓</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quiz Screen -->
-    <div id="quizScreen" class="screen">
-        <div class="screen-content quiz-content">
-            <h2 id="quizTitle">Level <span id="quizLevel">1</span> Quiz</h2>
-            <p id="quizQuestion" class="question-text"></p>
-            <div id="quizOptions" class="quiz-options"></div>
-            <div id="quizFeedback" class="quiz-feedback"></div>
-        </div>
-    </div>
-
-    <!-- Game Over Screen -->
-    <div id="gameOverScreen" class="screen">
-  <div class="screen-content">
-    <h1>💀 Game Over</h1>
-    <p id="finalScore"></p>
-
-    <div class="button-group">
-      <button id="viewStatsBtn" class="btn-primary">My Score</button>
-      <button id="restartBtn" class="btn-primary">Restart</button>
-      <button id="leaderboardBtn" class="btn-secondary">View Leaderboard</button>
-    </div>
-
-    <div id="statsPopup" class="popup hidden">
-      <h3>My Score</h3>
-      <p id="statsText"></p>
-      <button id="closeStatsBtn" class="btn-secondary small">Close</button>
+  <!-- Player Modal -->
+  <div class="modal" id="playerModal">
+    <div class="modal-content neon-border">
+      <span class="close" id="closePlayer">&times;</span>
+      <h2>Player Login</h2>
+      <form id="playerForm">
+        <input type="email" id="playerEmail" placeholder="Email" required />
+        <input type="password" id="playerPassword" placeholder="Password" required />
+        <button type="submit" class="login-btn">Login</button>
+        <div id="playerError" class="error"></div>
+      </form>
     </div>
   </div>
-</div>
-<!--LEADERBORD-->
-    
-<div id="leaderboardScreen" class="screen">
-  <div class="screen-content">
-    <h1>🏆 Leaderboard</h1>
-    <div id="leaderboardList"></div>
-    <button id="backToGameOverBtn" class="btn-secondary">Back</button>
-    <button id="exitGameBtn" class="btn-primary">Exit Game</button>
+
+  <!-- Admin Modal -->
+  <div class="modal" id="adminModal">
+    <div class="modal-content neon-border">
+      <span class="close" id="closeAdmin">&times;</span>
+      <h2>Admin Login</h2>
+      <form id="adminForm">
+        <input type="email" id="adminEmail" placeholder="Email" required />
+        <input type="password" id="adminPassword" placeholder="Password" required />
+        <button type="submit" class="login-btn">Login</button>
+        <div id="adminError" class="error"></div>
+      </form>
+    </div>
   </div>
-</div>
-<!-- Exit Screen -->
-<div id="exitScreen" class="screen hidden">
-  <div class="screen-content">
-    <h1>👋 Thanks for playing!</h1>
-    <p>See you next time, Pilot!</p>
-  </div>
-</div>
 
+  <script>
+    // 🎮 Modal Controls
+    const playerModal = document.getElementById("playerModal");
+    const adminModal = document.getElementById("adminModal");
 
+    document.getElementById("playerLoginBtn").onclick = () => playerModal.style.display = "flex";
+    document.getElementById("adminLoginBtn").onclick = () => adminModal.style.display = "flex";
+    document.getElementById("closePlayer").onclick = () => playerModal.style.display = "none";
+    document.getElementById("closeAdmin").onclick = () => adminModal.style.display = "none";
+    window.onclick = (e) => {
+      if (e.target === playerModal) playerModal.style.display = "none";
+      if (e.target === adminModal) adminModal.style.display = "none";
+    };
 
-    <!-- Audio -->
-    <audio id="backgroundMusic" loop>
-        <source src="assets/background.ogg" type="audio/ogg">
-        <source src="assets/background.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="explosionSound">
-        <source src="assets/explosion.wav" type="audio/wav">
-    </audio>
+    // 🧑‍🎓 Player Login
+    document.getElementById("playerForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const email = playerEmail.value;
+      const password = playerPassword.value;
+      const err = playerError;
+      err.textContent = "";
+      try {
+        const res = await fetch("http://localhost:3000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, role: "player" })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("playerName", data.name);
+          localStorage.setItem("role", "player");
+          window.location.href = "game.html";
+        } else {
+          err.textContent = data.message || "Invalid credentials";
+        }
+      } catch {
+        err.textContent = "Server error.";
+      }
+    };
 
-    <script src="game.js"></script>
+    // 👩‍💼 Admin Login
+    document.getElementById("adminForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const email = adminEmail.value;
+      const password = adminPassword.value;
+      const err = adminError;
+      err.textContent = "";
+      try {
+        const res = await fetch("http://localhost:3000/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, role: "admin" })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("adminName", data.name);
+          localStorage.setItem("role", "admin");
+          window.location.href = "admin.html";
+        } else {
+          err.textContent = data.message || "Invalid credentials";
+        }
+      } catch {
+        err.textContent = "Server error.";
+      }
+    };
+  </script>
 </body>
 </html>
+
+
 

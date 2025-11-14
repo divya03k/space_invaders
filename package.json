@@ -4,16 +4,32 @@
   "description": "A web-native space shooter game with quiz questions, built with HTML5 Canvas and JavaScript. Fully mobile-friendly with touch controls and button-based navigation.",
   "main": "game.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
     "dotenv": "^17.2.3",
+    "exceljs": "^4.4.0",
     "express": "^5.1.0",
-    "mysql2": "^3.15.3"
-  }
+    "google-auth-library": "^10.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "mysql2": "^3.15.3",
+    "seedrandom": "^3.0.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/divya03k/space_invaders.git"
+  },
+  "bugs": {
+    "url": "https://github.com/divya03k/space_invaders/issues"
+  },
+  "homepage": "https://github.com/divya03k/space_invaders#readme"
 }
