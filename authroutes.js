@@ -51,15 +51,16 @@ router.post("/login", async (req, res) => {
 
     const user = rows[0];
 
-    // Compare hashed password for ALL users
+    // ✅ Compare HASHED password
     const passwordMatch = await bcrypt.compare(password, user.password_hash);
-
     if (!passwordMatch) {
       return res.json({ success: false, message: "Invalid credentials" });
     }
 
-    // Create JWT token
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: "24h" });
+    // Generate token
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "24h"
+    });
 
     res.json({
       success: true,
@@ -73,7 +74,6 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error during login" });
   }
 });
-
 /* ------------------ PLAYER REGISTRATION ------------------ */
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
