@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <title>Admin Panel - Space Invaders</title>
+  <title>Login - Space Invaders</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* Cyberpunk neon theme */
     body {
       margin: 0;
       padding: 0;
@@ -20,20 +18,31 @@
     }
 
     .container {
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0,0,0,0.6);
       padding: 40px 30px;
       border-radius: 20px;
       box-shadow: 0 0 25px cyan;
       text-align: center;
-      max-width: 500px;
       width: 90%;
+      max-width: 400px;
     }
 
     h1 {
-      font-size: 2.8rem;
+      font-size: 2.5rem;
       color: cyan;
       text-shadow: 0 0 15px cyan;
       margin-bottom: 2rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid cyan;
+      background: #0c1a26;
+      color: cyan;
+      font-size: 1rem;
     }
 
     .btn {
@@ -45,9 +54,9 @@
       font-size: 1.1rem;
       cursor: pointer;
       transition: all 0.3s ease;
-      margin: 12px 0;
+      margin-top: 10px;
       width: 100%;
-      box-shadow: 0 0 10px rgba(0, 188, 212, 0.5);
+      box-shadow: 0 0 10px rgba(0,188,212,0.5);
     }
 
     .btn:hover {
@@ -56,253 +65,75 @@
       box-shadow: 0 0 20px cyan;
     }
 
-    .upload-section {
-      margin: 20px 0;
-      padding: 15px;
-      background: rgba(12, 26, 38, 0.8);
-      border-radius: 12px;
-      border: 1px solid cyan;
-    }
-
-    select,
-    input[type="file"],
-    input[type="email"] {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      background: #0c1a26;
-      color: cyan;
-      border: 1px solid cyan;
-      border-radius: 6px;
-      font-size: 0.95rem;
-    }
-
-    .msg {
-      margin-top: 10px;
-      font-size: 0.9rem;
-    }
-
+    .msg { margin-top: 12px; font-size: 0.95rem; }
     .success { color: #4CAF50; }
-    .error   { color: #ff6666; }
-
-    .logout { background: #ff4444; }
-    .logout:hover { background: #ff6666; box-shadow: 0 0 20px #ff6666; }
-
-    /* Hide forms until needed */
-    .dynamic-form { display: none; }
+    .error { color: #ff6666; }
   </style>
 </head>
-
 <body>
   <div class="container">
-    <h1>Admin Panel</h1>
+    <h1>Space Invaders Login</h1>
 
-    <!-- EXPORT PLAYERS -->
-    <button class="btn" id="exportPlayersBtn">Export All Player Details</button>
-
-    <!-- UPLOAD QUESTIONS -->
-    <div class="upload-section">
-      <strong>Upload Questions (CSV)</strong>
-      <form id="uploadForm">
-        <input type="file" id="csvFile" accept=".csv" required>
-        <button type="submit" class="btn">Upload & Convert</button>
-        <div id="uploadMsg" class="msg"></div>
-      </form>
-    </div>
-
-    <!-- PLAYER ACTION SELECTOR -->
-    <div class="upload-section">
-      <strong>Player Management</strong>
-
-      <select id="playerActionSelect">
-        <option value="" disabled selected>Select an action…</option>
-        <option value="upload">Upload Players (Excel)</option>
-        <option value="remove">Remove Player</option>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <select id="role" required>
+        <option value="" disabled selected>Select Role</option>
+        <option value="player">Player</option>
+        <option value="admin">Admin</option>
       </select>
-
-      <!-- Upload Players Form (hidden by default) -->
-      <div id="uploadPlayersContainer" class="dynamic-form">
-        <form id="uploadPlayersForm">
-          <input type="file" id="playersExcel" name="file" accept=".xlsx" required>
-          <button type="submit" class="btn">Upload Players</button>
-          <div id="uploadPlayersMsg" class="msg"></div>
-        </form>
-      </div>
-
-      <!-- Remove Player Form (hidden by default) -->
-      <div id="removePlayerContainer" class="dynamic-form">
-        <form id="removePlayerForm">
-          <input type="email" id="removePlayerEmail" placeholder="Player Email" required>
-          <button type="submit" class="btn">Remove Player</button>
-          <div id="removePlayerMsg" class="msg"></div>
-        </form>
-      </div>
-    </div>
-
-    <!-- LOGOUT -->
-    <button class="btn logout" onclick="logout()">Logout</button>
+      <button type="submit" class="btn">Login</button>
+      <div id="loginMsg" class="msg"></div>
+    </form>
   </div>
 
   <script>
     const API_BASE = 'https://space-invaders-cddi.onrender.com/api';
-    const token = localStorage.getItem('token');
 
-    /* -------------------------------------------------
-       Show / hide the correct form when dropdown changes
-       ------------------------------------------------- */
-    const select = document.getElementById('playerActionSelect');
-    const uploadDiv = document.getElementById('uploadPlayersContainer');
-    const removeDiv = document.getElementById('removePlayerContainer');
-
-    select.addEventListener('change', () => {
-      // hide both
-      uploadDiv.style.display = 'none';
-      removeDiv.style.display = 'none';
-
-      if (select.value === 'upload') {
-        uploadDiv.style.display = 'block';
-      } else if (select.value === 'remove') {
-        removeDiv.style.display = 'block';
-      }
-    });
-
-    // ----------------------------
-    // Export All Players Details
-    // ---------------------------
-    // -
-  document.getElementById('exportPlayersBtn').addEventListener('click', async () => {
-  if (!token) return alert('Login required');
-
-  try {
-    const res = await fetch(`${API_BASE}/admin/export/players`, {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (!res.ok) throw new Error('Export failed');
-
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'players.xlsx';
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-
-  } catch (err) {
-    alert(err.message);
-  }
-});
-
-
-
-    // ----------------------------
-    // Upload Players (Excel)
-    // ----------------------------
-    const uploadPlayersMsg = document.getElementById('uploadPlayersMsg');
-    document.getElementById('uploadPlayersForm').onsubmit = async (e) => {
+    document.getElementById('loginForm').onsubmit = async (e) => {
       e.preventDefault();
-      if (!token) return alert("Login required");
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
 
-      const file = document.getElementById('playersExcel').files[0];
-      if (!file) return alert("Select a file");
-
-      const formData = new FormData();
-      formData.append('file', file);
-
-      uploadPlayersMsg.textContent = 'Uploading...';
-      uploadPlayersMsg.className = 'msg';
-
-      try {
-        const res = await fetch(`${API_BASE}/admin/upload-players`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
-          body: formData
-        });
-        const data = await res.json();
-        uploadPlayersMsg.textContent = data.message;
-        uploadPlayersMsg.className = `msg ${data.success ? 'success' : 'error'}`;
-      } catch (err) {
-        uploadPlayersMsg.textContent = "Network error";
-        uploadPlayersMsg.className = 'msg error';
-      }
-    };
-
-    // ----------------------------
-    // Upload Questions CSV
-    // ----------------------------
-    document.getElementById('uploadForm').onsubmit = async (e) => {
-      e.preventDefault();
-      if (!token) return alert('Login required');
-
-      const file = document.getElementById('csvFile').files[0];
-      if (!file) return;
-
-      const formData = new FormData();
-      formData.append('csv', file);
-
-      const msg = document.getElementById('uploadMsg');
-      msg.textContent = 'Uploading...';
+      const msg = document.getElementById('loginMsg');
+      msg.textContent = 'Logging in...';
       msg.className = 'msg';
 
       try {
-        const res = await fetch(`${API_BASE}/admin/upload-questions`, {
+        const res = await fetch(`${API_BASE}/auth/login`, {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
-          body: formData
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, role })
         });
+
         const data = await res.json();
+
         if (data.success) {
-          msg.innerHTML = `<span class="success">${data.message}</span>`;
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('role', data.role);
+          localStorage.setItem('name', data.name);
+
+          msg.textContent = 'Login successful!';
+          msg.className = 'msg success';
+
+          // Redirect based on role
+          if (data.role === 'admin') {
+            window.location.href = '/admin.html';
+          } else {
+            window.location.href = '/index.html'; // your game page
+          }
+
         } else {
-          msg.innerHTML = `<span class="error">${data.error || 'Upload failed'}</span>`;
+          msg.textContent = data.message || 'Login failed';
+          msg.className = 'msg error';
         }
+
       } catch (err) {
-        msg.innerHTML = `<span class="error">Network error. Try again.</span>`;
+        msg.textContent = 'Network error. Try again.';
+        msg.className = 'msg error';
       }
     };
-
-    // ----------------------------
-    // Remove Player
-    // ----------------------------
-    const removePlayerMsg = document.getElementById('removePlayerMsg');
-    document.getElementById('removePlayerForm').onsubmit = async (e) => {
-      e.preventDefault();
-      if (!token) return alert("Login required");
-
-      const email = document.getElementById('removePlayerEmail').value.trim();
-
-      removePlayerMsg.textContent = 'Removing...';
-      removePlayerMsg.className = 'msg';
-
-      try {
-        const res = await fetch(`${API_BASE}/admin/remove-player`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ email })
-        });
-        const data = await res.json();
-        removePlayerMsg.textContent = data.message;
-        removePlayerMsg.className = `msg ${data.success ? 'success' : 'error'}`;
-      } catch (err) {
-        removePlayerMsg.textContent = "Network error";
-        removePlayerMsg.className = 'msg error';
-      }
-    };
-
-    // ----------------------------
-    // Logout
-    // ----------------------------
-    function logout() {
-      localStorage.clear();
-      window.location.href = '/';
-    }
   </script>
 </body>
-
 </html>
