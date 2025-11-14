@@ -485,7 +485,7 @@ function endGame() {
 // ======================
 async function saveScore(name, score) {
     try {
-        const res = await fetch("https://space-invaders-cddi.onrender.comapi/auth/add-score", {
+        const res = await fetch("https://space-invaders-cddi.onrender.com/api/auth/add-score", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
