@@ -15,7 +15,11 @@ import pool from "./db.js";  // ✅ Use TiDB pool from db.js
 
 dotenv.config();
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: '*', // or your frontend domain
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.static("."));
 app.use(express.static("public")); // put admin.html in public folder
@@ -110,7 +114,7 @@ app.post("/api/admin/upload-questions", authMiddleware, adminOnly, upload.single
 
 
 // Export player progress
-app.get("/admin/export/players", authMiddleware, adminOnly, async (req, res) => {
+app.get("api/admin/export/players", authMiddleware, adminOnly, async (req, res) => {
   try {
     // Join users and leaderboard, only players
     const [rows] = await pool.query(`
@@ -251,7 +255,7 @@ app.post("/api/admin/remove-player", authMiddleware, adminOnly, async (req, res)
 });
 
 
-const PORT = 3000||process.env.PORT ;
+const PORT = process.env.PORT||3000;
 app.listen(PORT, () =>
-  console.log(`✅ Server running on http://localhost:${PORT}`)
+  console.log(`✅ Server running on ${PORT}`)
 );
