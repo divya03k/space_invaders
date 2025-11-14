@@ -179,40 +179,70 @@ app.get("/api/admin/export/players", authMiddleware, adminOnly, async (req, res)
 // -------------------
 // Upload Players (Excel)
 // -------------------
-app.post("/api/admin/upload-players", upload.single("file"), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ success: false, message: "No file uploaded" });
+app.post("/api/admin/upload-players", authMiddleware, adminOnly, upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: "No file uploaded" });
+
+    // Read Excel using XLSX (you can use ExcelJS too)
+    const workbook = XLSX.readFile(req.file.path);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { defval: null });
+
+    let inserted = 0, skipped = 0;
+    for (const row of rows) {
+      const name = (row.Name || row.name || '').toString().trim();
+      const email = (row.Email || row.email || '').toString().trim();
+      const passwordPlain = row.Password || row.password || "player123";
+
+      if (!name || !email) {
+        skipped++;
+        continue;
+      }
+
+      // Hash password
+      const password_hash = await bcrypt.hash(passwordPlain.toString(), 10);
+
+      try {
+        // Use INSERT IGNORE to avoid duplicate email errors (email has UNIQUE in schema)
+        const [result] = await pool.query(
+          "INSERT IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'player')",
+          [name, email, password_hash]
+        );
+
+        // If inserted a new user, make sure leaderboard has an entry
+        if (result.affectedRows > 0) {
+          await pool.query(
+            "INSERT IGNORE INTO leaderboard (player_name, score, level) VALUES (?, 0, 1)",
+            [name]
+          );
+          inserted++;
+        } else {
+          // If user exists, optionally ensure leaderboard row exists
+          await pool.query(
+            "INSERT IGNORE INTO leaderboard (player_name, score, level) VALUES (?, 0, 1)",
+            [name]
+          );
+          skipped++;
         }
-
-        // Read Excel
-        const workbook = XLSX.readFile(req.file.path);
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet);
-
-        // Each row expected:
-        // Name | Email | Password
-        for (const row of rows) {
-            const name = row.Name;
-            const email = row.Email;
-            const password = row.Password || "player123";
-
-            const password_hash = await bcrypt.hash(password, 10);
-
-            await db.query(
-                "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'player')",
-                [name, email, password_hash]
-            );
-        }
-
-        res.json({ success: true, message: "Players uploaded successfully!" });
-
-    } catch (err) {
-        console.error("❌ Upload players error:", err);
-        res.status(500).json({ success: false, message: err.message });
+      } catch (subErr) {
+        console.warn("Row insert skipped due to error:", subErr.message);
+        skipped++;
+      }
     }
-});// -------------------
-// Fetch Questions
+
+    // cleanup
+    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+
+    res.json({ success: true, message: `Uploaded players: ${inserted}. Skipped: ${skipped}.` });
+  } catch (err) {
+    console.error("❌ Upload players error:", err);
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// -------------------
+// Fetch Questions (protected)// Fetch Questions
 // -------------------
 app.get("/questions", authMiddleware, async (req, res) => {
   try {
