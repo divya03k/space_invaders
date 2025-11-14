@@ -124,7 +124,7 @@ async function loadAssets() {
 async function loadQuestions() {
     try {
         const token = localStorage.getItem('token'); // JWT from login
-        const r = await fetch('http://localhost:3000/questions', {
+        const r = await fetch('https://space-invaders-cddi.onrender.com/questions', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!r.ok) throw 0;
@@ -485,7 +485,7 @@ function endGame() {
 // ======================
 async function saveScore(name, score) {
     try {
-        const res = await fetch("http://localhost:3000/api/auth/add-score", {
+        const res = await fetch("https://space-invaders-cddi.onrender.comapi/auth/add-score", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
