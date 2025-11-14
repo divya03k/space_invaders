@@ -36,6 +36,7 @@ export const adminOnly = (req, res, next) => {
 };
 
 /* ------------------ LOGIN ------------------ */
+// 🧩 LOGIN Route
 router.post("/login", async (req, res) => {
   const { email, password, role } = req.body;
 
@@ -45,22 +46,23 @@ router.post("/login", async (req, res) => {
       [email, role]
     );
 
-    if (rows.length === 0) {
+    const user = rows[0];
+    if (!user) {
       return res.json({ success: false, message: "Invalid credentials" });
     }
 
-    const user = rows[0];
-
-    // ✅ Compare HASHED password
+    // ✔ Correct bcrypt compare
     const passwordMatch = await bcrypt.compare(password, user.password_hash);
     if (!passwordMatch) {
       return res.json({ success: false, message: "Invalid credentials" });
     }
 
     // Generate token
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "24h"
-    });
+    const token = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
 
     res.json({
       success: true,
