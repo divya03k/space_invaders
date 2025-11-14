@@ -117,14 +117,28 @@ app.delete('/api/admin/delete-all-questions', async (req, res) => {
   }
 });
 // DELETE ALL PLAYERS
-app.delete('/api/admin/delete-all-players', async (req, res) => {
-  try {
-    await pool.query("DELETE FROM players");
-    res.json({ success: true, message: "All players deleted successfully." });
-  } catch (err) {
-    console.error("Error deleting players:", err);
-    res.status(500).json({ success: false, message: "Server error deleting players." });
-  }
+
+app.delete("/api/admin/delete-all-players", async (req, res) => {
+    try {
+        console.log("🟡 Incoming delete-all-players request");
+
+        const [users] = await pool.query("SELECT COUNT(*) AS total FROM users");
+        console.log("Users in DB:", users[0].total);
+
+        const [leaderboard] = await pool.query("SELECT COUNT(*) AS total FROM leaderboard");
+        console.log("Leaderboard entries:", leaderboard[0].total);
+
+        const [del1] = await pool.query("DELETE FROM users WHERE role='player'");
+        const [del2] = await pool.query("DELETE FROM leaderboard");
+
+        console.log("Deleted players:", del1.affectedRows);
+        console.log("Deleted leaderboard:", del2.affectedRows);
+
+        res.json({ success: true, message: "All players deleted successfully!" });
+    } catch (err) {
+        console.error("🔥 HARD ERROR:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
 });
 
 // -------------------
