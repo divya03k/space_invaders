@@ -110,7 +110,7 @@ app.post("/api/admin/upload-questions", authMiddleware, adminOnly, upload.single
 
 
 // Export player progress
-app.get("/api/admin/export/players", authMiddleware, adminOnly, async (req, res) => {
+app.get("/admin/export/players", authMiddleware, adminOnly, async (req, res) => {
   try {
     // Join users and leaderboard, only players
     const [rows] = await pool.query(`
@@ -226,41 +226,6 @@ app.get("/questions", authMiddleware, async (req, res) => {
 });
 
 
-app.post("/api/admin/upload-players", authMiddleware, adminOnly, upload.single('file'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
-  
-  try {
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(req.file.path);
-    const sheet = workbook.worksheets[0];
-    
-    const players = [];
-    sheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return; // Skip header
-      const name = row.getCell(1).value?.toString();
-      const email = row.getCell(2).value?.toString();
-      const password = row.getCell(3).value?.toString();
-      if (name && email && password) players.push({ name, email, password });
-    });
-
-    for (const p of players) {
-      await pool.query(
-        "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'player')",
-        [p.name, p.email, p.password]
-      );
-      await pool.query(
-        "INSERT INTO leaderboard (player_name) VALUES (?)",
-        [p.name]
-      );
-    }
-
-    fs.unlinkSync(req.file.path);
-    res.json({ success: true, message: `${players.length} players added successfully!` });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Failed to add players' });
-  }
-});
 app.post("/api/admin/remove-player", authMiddleware, adminOnly, async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ success: false, message: "Email is required" });
