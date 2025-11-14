@@ -124,6 +124,10 @@
         <option value="upload">Upload Players (Excel)</option>
         <option value="remove">Remove Player</option>
       </select>
+    <button class="btn" id="deletePlayersBtn" style="background:#ff4444;">
+  Delete ALL Players
+</button>
+<div id="deletePlayersMsg" class="msg"></div>
 
       <!-- Upload Players Form (hidden by default) -->
       <div id="uploadPlayersContainer" class="dynamic-form">
@@ -233,6 +237,31 @@
         uploadPlayersMsg.className = 'msg error';
       }
     };
+  document.getElementById('deletePlayersBtn').addEventListener('click', async () => {
+  if (!token) return alert("Login required");
+
+  if (!confirm("⚠️ WARNING: This will delete ALL players permanently! Continue?")) return;
+
+  const msg = document.getElementById('deletePlayersMsg');
+  msg.textContent = "Deleting...";
+  msg.className = "msg";
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/delete-all-players`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    const data = await res.json();
+    msg.textContent = data.message;
+    msg.className = `msg ${data.success ? "success" : "error"}`;
+  } catch (err) {
+    msg.textContent = "Network error while deleting players!";
+    msg.className = "msg error";
+  }
+});
 
     // ----------------------------
     // Upload Questions CSV

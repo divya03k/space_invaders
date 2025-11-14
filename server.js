@@ -116,6 +116,16 @@ app.delete('/api/admin/delete-all-questions', async (req, res) => {
     res.status(500).json({ success: false, message: "Server error deleting questions." });
   }
 });
+// DELETE ALL PLAYERS
+app.delete('/api/admin/delete-all-players', async (req, res) => {
+  try {
+    await pool.query("DELETE FROM players");
+    res.json({ success: true, message: "All players deleted successfully." });
+  } catch (err) {
+    console.error("Error deleting players:", err);
+    res.status(500).json({ success: false, message: "Server error deleting players." });
+  }
+});
 
 // -------------------
 // Export Players
