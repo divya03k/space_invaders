@@ -117,16 +117,18 @@ async function loadAssets() {
     gameState.assets.player = await loadImage('assets/level1/player.png', '#00ff00');
     gameState.assets.bullet = await loadImage('assets/bullet.png', '#ffff00');
 }
-
+const API_HOST = 'https://space-invaders-cddi.onrender.com'; // or use location.origin in local dev
+    
 // ======================
 // LOAD QUESTIONS
 // ======================
 async function loadQuestions() {
     try {
+        const r = await fetch(`${API_HOST}/api/questions`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+});
+
         const token = localStorage.getItem('token'); // JWT from login
-        const r = await fetch('https://space-invaders-cddi.onrender.com/questions', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
         if (!r.ok) throw 0;
 
         const allFromDB = await r.json(); // Array of questions from DB
@@ -471,13 +473,13 @@ document.getElementById("backToGameOverBtn").onclick = () => {
 };
 
 
-function endGame() {
+async function endGame() {
     sounds.background.pause();
     sounds.background.currentTime = 0;
 
     gameState.gameOver = true;
     elements.finalScore.textContent = `Score: ${gameState.score} | Level ${gameState.level}`;
-    saveScore(gameState.playerName, gameState.score);
+    await saveScore(gameState.playerName, gameState.score);
     showScreen('gameOverScreen');
 }
 // ======================
@@ -485,7 +487,7 @@ function endGame() {
 // ======================
 async function saveScore(name, score) {
     try {
-        const res = await fetch("https://space-invaders-cddi.onrender.com/api/auth/add-score", {
+        const res = await fetch(`${API_HOST}/api/add-score`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -507,7 +509,7 @@ async function saveScore(name, score) {
 // ======================
 async function displayLeaderboard() {
     try {
-        const res = await fetch("https://space-invaders-cddi.onrender.com/leaderboard");
+        const res = await fetch(`${API_HOST}/api/leaderboard`);
         const scores = await res.json();
 
         elements.leaderboardList.innerHTML = scores.length
