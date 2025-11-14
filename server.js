@@ -30,7 +30,7 @@ const upload = multer({ dest: 'uploads/' });
 // -------------------
 // Add Score
 // -------------------
-app.post("api/add-score", async (req, res) => {
+app.post("/add-score", async (req, res) => {
   const { playerName, score, level } = req.body;
   try {
     await addScore(playerName, score, level);
@@ -45,7 +45,7 @@ app.post("api/add-score", async (req, res) => {
 // -------------------
 // Leaderboard
 // -------------------
-app.get("api/leaderboard", async (req, res) => {
+app.get("/leaderboard", async (req, res) => {
   try {
     const data = await getTopScores();
     if (!Array.isArray(data)) {
@@ -176,7 +176,7 @@ app.post("/api/admin/upload-players", authMiddleware, adminOnly, upload.single('
 // -------------------
 // Fetch Questions
 // -------------------
-app.get("api/questions", authMiddleware, async (req, res) => {
+app.get("/questions", authMiddleware, async (req, res) => {
   try {
     const [rows] = await pool.query("SELECT * FROM questions ORDER BY id");
     const rng = seedrandom(req.user.id + '-' + Date.now());
