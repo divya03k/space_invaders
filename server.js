@@ -12,6 +12,8 @@ import { addScore, getTopScores } from "./leaderboard.js";
 import authRoutes, { authMiddleware, adminOnly } from "./authroutes.js";
 import pool from "./db.js";
 import readline from 'readline';
+import XLSX from "xlsx";
+
 
 dotenv.config();
 const app = express();
@@ -176,67 +178,39 @@ app.get("/api/admin/export/players", authMiddleware, adminOnly, async (req, res)
 // -------------------
 // Upload Players (Excel)
 // -------------------
-app.post('/api/admin/upload-players', upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: "No file uploaded" });
-    }
-
-    // Read Excel file
-    const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = xlsx.utils.sheet_to_json(sheet);
-
-    let inserted = 0;
-    let skipped = 0;
-
-    for (let row of rows) {
-      const name = row.Name?.trim();
-      const email = row.Email?.trim();
-      const password = row.Password?.trim() || "player123"; // Default password
-
-      if (!name || !email) {
-        skipped++;
-        continue;
-      }
-
-      try {
-        // Insert into users (email must be unique)
-        await pool.query(
-          `INSERT INTO users (name, email, password_hash, role)
-           VALUES (?, ?, ?, 'player')`,
-          [name, email, password]
-        );
-
-        // Insert into leaderboard
-        await pool.query(
-          `INSERT INTO leaderboard (player_name, score, level)
-           VALUES (?, 0, 1)`,
-          [name]
-        );
-
-        inserted++;
-
-      } catch (err) {
-        if (err.code === "ER_DUP_ENTRY") {
-          skipped++; // Email exists, skip
-        } else {
-          console.error("Database error:", err);
+app.post("/admin/upload-players", upload.single("file"), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "No file uploaded" });
         }
-      }
+
+        // Read Excel
+        const workbook = XLSX.readFile(req.file.path);
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
+
+        // Each row expected:
+        // Name | Email | Password
+        for (const row of rows) {
+            const name = row.Name;
+            const email = row.Email;
+            const password = row.Password || "player123";
+
+            const password_hash = await bcrypt.hash(password, 10);
+
+            await db.query(
+                "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'player')",
+                [name, email, password_hash]
+            );
+        }
+
+        res.json({ success: true, message: "Players uploaded successfully!" });
+
+    } catch (err) {
+        console.error("❌ Upload players error:", err);
+        res.status(500).json({ success: false, message: err.message });
     }
-
-    res.json({
-      success: true,
-      message: `Upload complete: ${inserted} added, ${skipped} skipped`
-    });
-
-  } catch (err) {
-    console.error("Upload players error:", err);
-    res.status(500).json({ success: false, message: "Server error uploading players" });
-  }
-});
-// -------------------
+});// -------------------
 // Fetch Questions
 // -------------------
 app.get("/questions", authMiddleware, async (req, res) => {
