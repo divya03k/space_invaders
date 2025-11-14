@@ -110,6 +110,10 @@
         <div id="uploadMsg" class="msg"></div>
       </form>
     </div>
+   <button class="btn" id="deleteQuestionsBtn" style="background:#ff4444;">
+  Delete ALL Questions
+</button>
+<div id="deleteQuestionsMsg" class="msg"></div>
 
     <!-- PLAYER ACTION SELECTOR -->
     <div class="upload-section">
@@ -263,6 +267,31 @@
         msg.innerHTML = `<span class="error">Network error. Try again.</span>`;
       }
     };
+    document.getElementById('deleteQuestionsBtn').addEventListener('click', async () => {
+  if (!token) return alert("Login required");
+
+  if (!confirm("Are you sure? This will delete ALL questions permanently!")) return;
+
+  const msg = document.getElementById('deleteQuestionsMsg');
+  msg.textContent = "Deleting...";
+  msg.className = "msg";
+
+  try {
+    const res = await fetch(`${API_BASE}/admin/delete-all-questions`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    const data = await res.json();
+    msg.textContent = data.message;
+    msg.className = `msg ${data.success ? "success" : "error"}`;
+  } catch (err) {
+    msg.textContent = "Network error while deleting!";
+    msg.className = "msg error";
+  }
+});
 
     // ----------------------------
     // Remove Player

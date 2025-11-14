@@ -106,6 +106,16 @@ app.post("/api/admin/upload-questions", authMiddleware, adminOnly, upload.single
     res.status(500).json({ success: false, message: "Failed to upload questions" });
   }
 });
+// DELETE ALL QUESTIONS
+app.delete('/api/admin/delete-all-questions', async (req, res) => {
+  try {
+    await pool.query("DELETE FROM questions");
+    res.json({ success: true, message: "All questions deleted successfully." });
+  } catch (err) {
+    console.error("Error deleting questions:", err);
+    res.status(500).json({ success: false, message: "Server error deleting questions." });
+  }
+});
 
 // -------------------
 // Export Players
