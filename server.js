@@ -178,7 +178,7 @@ app.get("/api/admin/export/players", authMiddleware, adminOnly, async (req, res)
 // -------------------
 // Upload Players (Excel)
 // -------------------
-app.post("/admin/upload-players", upload.single("file"), async (req, res) => {
+app.post("/api/admin/upload-players", upload.single("file"), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ success: false, message: "No file uploaded" });
