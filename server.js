@@ -13,6 +13,7 @@ import authRoutes, { authMiddleware, adminOnly } from "./authroutes.js";
 import pool from "./db.js";
 import readline from 'readline';
 import XLSX from "xlsx";
+import db from "./db.js";
 
 
 dotenv.config();
