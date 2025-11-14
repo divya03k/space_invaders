@@ -162,37 +162,66 @@ app.get("/api/admin/export/players", authMiddleware, adminOnly, async (req, res)
 // -------------------
 // Upload Players (Excel)
 // -------------------
-app.post("/api/admin/upload-players", authMiddleware, adminOnly, upload.single('file'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
-
+app.post('/api/admin/upload-players', upload.single('file'), async (req, res) => {
   try {
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(req.file.path);
-    const sheet = workbook.worksheets[0];
-
-    const players = [];
-    sheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return;
-      const name = row.getCell(1).value?.toString();
-      const email = row.getCell(2).value?.toString();
-      const password = row.getCell(3).value?.toString();
-      if (name && email && password) players.push({ name, email, password });
-    });
-
-    for (const p of players) {
-      await pool.query("INSERT IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'player')",
-        [p.name, p.email, p.password]);
-      await pool.query("INSERT IGNORE INTO leaderboard (player_name) VALUES (?)", [p.name]);
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
     }
 
-    fs.unlinkSync(req.file.path);
-    res.json({ success: true, message: `${players.length} players added successfully!` });
+    // Read Excel file
+    const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = xlsx.utils.sheet_to_json(sheet);
+
+    let inserted = 0;
+    let skipped = 0;
+
+    for (let row of rows) {
+      const name = row.Name?.trim();
+      const email = row.Email?.trim();
+      const password = row.Password?.trim() || "player123"; // Default password
+
+      if (!name || !email) {
+        skipped++;
+        continue;
+      }
+
+      try {
+        // Insert into users (email must be unique)
+        await pool.query(
+          `INSERT INTO users (name, email, password_hash, role)
+           VALUES (?, ?, ?, 'player')`,
+          [name, email, password]
+        );
+
+        // Insert into leaderboard
+        await pool.query(
+          `INSERT INTO leaderboard (player_name, score, level)
+           VALUES (?, 0, 1)`,
+          [name]
+        );
+
+        inserted++;
+
+      } catch (err) {
+        if (err.code === "ER_DUP_ENTRY") {
+          skipped++; // Email exists, skip
+        } else {
+          console.error("Database error:", err);
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Upload complete: ${inserted} added, ${skipped} skipped`
+    });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Failed to add players' });
+    console.error("Upload players error:", err);
+    res.status(500).json({ success: false, message: "Server error uploading players" });
   }
 });
-
 // -------------------
 // Fetch Questions
 // -------------------

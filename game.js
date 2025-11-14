@@ -469,17 +469,25 @@ document.getElementById("restartBtn").onclick = () => {
 document.getElementById("backToGameOverBtn").onclick = () => {
   showScreen("gameOverScreen");
 };
-
-
 function endGame() {
     sounds.background.pause();
     sounds.background.currentTime = 0;
 
     gameState.gameOver = true;
-    elements.finalScore.textContent = `Score: ${gameState.score} | Level ${gameState.level}`;
-    saveScore(gameState.playerName, gameState.score);
+
+    // ✅ Capture the TRUE final values BEFORE anything resets
+    gameState.finalScore = gameState.score;
+    gameState.finalLevel = gameState.level;
+
+    elements.finalScore.textContent =
+        `Score: ${gameState.finalScore} | Level ${gameState.finalLevel}`;
+
+    saveScore(gameState.playerName, gameState.finalScore);
+
     showScreen('gameOverScreen');
 }
+
+
 // ======================
 // SAVE SCORE TO SERVER (TiDB Cloud via Node backend)
 // ======================
@@ -565,7 +573,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
     if (viewStatsBtn) {
         viewStatsBtn.onclick = () => {
-            statsText.textContent = `${gameState.playerName}, your final score is ${gameState.score} at Level ${gameState.level}!`;
+            statsText.textContent =
+                `${gameState.playerName}, your final score is ${gameState.finalScore} at Level ${gameState.finalLevel}!`;
             statsPopup.classList.remove("hidden");
         };
     }
